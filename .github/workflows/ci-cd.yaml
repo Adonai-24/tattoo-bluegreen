@@ -1,0 +1,42 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+      - run: npm install
+      - run: npm test
+
+  load-test:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install
+      - run: |
+          node ./bin/www &
+          sleep 10
+      - name: Install k6
+        run: |
+          curl -s https://api.github.com/repos/grafana/k6/releases/latest \
+          | grep "browser_download_url.*linux-amd64" \
+          | cut -d '"' -f 4 \
+          | wget -qi -
+          tar -xzf k6-v*-linux-amd64.tar.gz
+          sudo mv k6-v*-linux-amd64/k6 /usr/local/bin/k6
+      - name: Run k6 cloud test
+        run: k6 run --out cloud k6/loadtest.js
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN_TATTOO }}
+          K6_CLOUD_PROJECT_ID: tattoo-bluegreen
