@@ -1,4 +1,5 @@
 require('dotenv').config()
+const client = require('prom-client')
 var express = require('express')
 var path = require('path')
 var cookieParser = require('cookie-parser')
@@ -6,7 +7,7 @@ var logger = require('morgan')
 
 const indexRouter = require('./routes/index')
 const itemsRouter = require('./routes/items')
-const metricasRouter = require('./routes/metricas')
+// const metricasRouter = require('./routes/metricas')
 
 var app = express()
 
@@ -27,6 +28,11 @@ app.get('/health', (req, res) => {
 })
 app.use('/', indexRouter)
 app.use('/disenos', itemsRouter)
-app.use('/metricas', metricasRouter)
+client.collectDefaultMetrics()
+app.get('/metricas', async (req, res) => {
+  res.set('Content-Type', client.register.contentType)
+  res.end(await client.register.metrics())
+})
+// app.use('/metricas', metricasRouter)
 
 module.exports = app
