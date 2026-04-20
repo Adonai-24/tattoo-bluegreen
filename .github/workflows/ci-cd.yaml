@@ -142,7 +142,7 @@ jobs:
           echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
           echo "NEXT_ENV=$NEXT_ENV"
           echo "CURRENT_ENV=$CURRENT_ENV"
-
+      
       - name: Deploy new container
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -154,14 +154,24 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          envs: NEXT_ENV,CURRENT_ENV
           script: |
+            if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
+              "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
+              NEXT_ENV=green
+              CURRENT_ENV=blue
+            else
+              NEXT_ENV=blue
+              CURRENT_ENV=green
+            fi
+            echo ">> Deploying NEXT=$NEXT_ENV  CURRENT=$CURRENT_ENV"
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
             cd /home/tattoo-bluegreen
             docker-compose stop app_${NEXT_ENV} || true
             docker-compose rm -f app_${NEXT_ENV} || true
             DEPLOY_ENV=${NEXT_ENV} docker-compose up -d --no-deps --build app_${NEXT_ENV}
+            echo "NEXT_ENV=${NEXT_ENV}" > /tmp/deploy_env
+            echo "CURRENT_ENV=${CURRENT_ENV}" >> /tmp/deploy_env
 
       - name: Switch Nginx
         uses: appleboy/ssh-action@v1.0.3
@@ -174,15 +184,61 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          envs: NEXT_ENV,CURRENT_ENV
           script: |
-            sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" /etc/nginx/sites-available/default
+            source /tmp/deploy_env
+            echo ">> Switching nginx: $CURRENT_ENV -> $NEXT_ENV"
+            sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" \
+              /etc/nginx/sites-available/default
             sudo systemctl reload nginx
-            echo "Esperando a que la app arranque..."
             sleep 7
             if ! curl -f http://34.51.83.32/health; then
               echo "Healthcheck falló, rollback a $CURRENT_ENV..."
-              sudo sed -i "s|proxy_pass http://app_${NEXT_ENV};|proxy_pass http://app_${CURRENT_ENV};|" /etc/nginx/sites-available/default
+              sudo sed -i "s|proxy_pass http://app_${NEXT_ENV};|proxy_pass http://app_${CURRENT_ENV};|" \
+                /etc/nginx/sites-available/default
               sudo systemctl reload nginx
               exit 1
             fi
+
+      # - name: Deploy new container
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.DOCKER_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     envs: NEXT_ENV,CURRENT_ENV
+      #     script: |
+      #       docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+      #       docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
+      #       cd /home/tattoo-bluegreen
+      #       docker-compose stop app_${NEXT_ENV} || true
+      #       docker-compose rm -f app_${NEXT_ENV} || true
+      #       DEPLOY_ENV=${NEXT_ENV} docker-compose up -d --no-deps --build app_${NEXT_ENV}
+
+      # - name: Switch Nginx
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.NGINX_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     envs: NEXT_ENV,CURRENT_ENV
+      #     script: |
+      #       sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" /etc/nginx/sites-available/default
+      #       sudo systemctl reload nginx
+      #       echo "Esperando a que la app arranque..."
+      #       sleep 7
+      #       if ! curl -f http://34.51.83.32/health; then
+      #         echo "Healthcheck falló, rollback a $CURRENT_ENV..."
+      #         sudo sed -i "s|proxy_pass http://app_${NEXT_ENV};|proxy_pass http://app_${CURRENT_ENV};|" /etc/nginx/sites-available/default
+      #         sudo systemctl reload nginx
+      #         exit 1
+      #       fi
