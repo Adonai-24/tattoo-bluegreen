@@ -20,5 +20,11 @@ app.use(express.static(path.join(__dirname, '../public')))
 
 app.use('/', indexRouter)
 app.use('/disenos', itemsRouter)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    env: process.env.DEPLOY_ENV || 'not-set'
+  })
+})
 
 module.exports = app
