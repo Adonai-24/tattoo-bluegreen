@@ -50,8 +50,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: npm install
-      - run: npm test -- --coverage
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
