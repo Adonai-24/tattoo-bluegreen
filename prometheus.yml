@@ -3,5 +3,6 @@ global:
 
 scrape_configs:
   - job_name: 'tattoo-app'
+    metrics_path: '/metricas/raw'
     static_configs:
-      - targets: ['app_blue:3001', 'app_green:3002']
+      - targets: ['10.0.2.2:3001', '10.0.2.2:3002']
