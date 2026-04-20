@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B0MB0</title>
+    <link rel="icon" href="/assets/img/logos/favicon.webp" type="image/webp">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+    <header class="navbar navbar-expand-lg navbar-dark bg-black fixed-top p-3">
+        <div class="container-fluid px-lg-5 px-3">
+            <a href="/" class="d-flex align-items-center gap-2 navbar-brand">
+                <img src="/assets/img/logos/favicon.webp" alt="Logotipo" class="img-fluid" style="width: 6.25rem; object-fit: contain;">
+                <h3 class="mb-0">Tattoo</h3>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="nav navbar-nav ms-lg-auto ms-4">
+                    <li class="nav-item mx-lg-2">
+                        <a class="nav-link fw-bold border-bottom border-2 active" aria-current="page" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item mx-lg-2">
+                        <a class="nav-link fw-light" href="/disenos">Diseños</a>
+                    </li>
+                    <li class="nav-item mx-lg-2">
+                        <a class="nav-link fw-light" href="/sonarqube" target="_blank" rel="noopener noreferrer">Sonarqube</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
+            <div id="myCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-label="Slide 1" aria-current="true"></button>
+                    <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2" class=""></button>
+                    <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3" class=""></button>
+                    <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="3" aria-label="Slide 4" class=""></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item position-relative active">
+                        <img src="/assets/img/banners/tattoo-salon-process-tattoo-girl-stuffed-tattoo-process-stuffing-tattoo-body-hands-close-up.webp" class="vw-100 vh-100 object-fit-cover">
+                        <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-75"></div>
+                        <div class="container position-relative">
+                            <div class="carousel-caption text-start">
+                                <h1>Arte en tu piel</h1>
+                                <p class="opacity-75">Creamos tatuajes únicos que cuentan tu historia.</p>
+                                <p><a class="btn btn-lg btn-outline-primary" href="/disenos">Explorar Diseños</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item position-relative">
+                        <img src="/assets/img/banners/black-white-tattoo-snake-symbol-generated-by-ai.webp" class="vw-100 vh-100 object-fit-cover">
+                        <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-75"></div>
+                        <div class="container position-relative">
+                            <div class="carousel-caption text-start">
+                                <h1>Estilos para todos</h1>
+                                <p class="opacity-75">Blackwork, realismo, minimalista y más.</p>
+                                <p><a class="btn btn-lg btn-outline-primary" href="#estilos">Ver estilos</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item position-relative">
+                        <img src="/assets/img/banners/pexels-pavel-danilyuk-6593529.webp" class="vw-100 vh-100 object-fit-cover">
+                        <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-75"></div>
+                        <div class="container position-relative">
+                            <div class="carousel-caption text-start">
+                                <h1>Artistas profesionales</h1>
+                                <p class="opacity-75">Nuestro equipo convierte tus ideas en arte.</p>
+                                <p><a class="btn btn-lg btn-outline-primary" href="#artistas">Conócelos</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item position-relative">
+                        <img src="/assets/img/banners/pexels-shaiel-reyes-2152482857-32225186.webp" class="vw-100 vh-100 object-fit-cover">
+                        <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-75"></div>
+                        <div class="container position-relative">
+                            <div class="carousel-caption text-start">
+                                <h1>Un mundo lleno de tinta</h1>
+                                <p class="opacity-75">Cada tatuaje cuenta una historia. Diseña el tuyo con nosotros.</p>
+                                <p><a class="btn btn-lg btn-outline-primary" href="/disenos">Ver Diseños</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span> <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span> <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row featurette my-5">
+                <div class="col-md-7">
+                    <h2 class="featurette-heading fw-normal lh-1">Historia del tatuaje</h2>
+                    <p class="lead">
+                        El tatuaje es una de las formas de arte más antiguas del mundo. Desde las antiguas culturas 
+                        de Egipto y Polinesia, donde simbolizaba estatus, protección o identidad, hasta la actualidad, 
+                        donde se ha convertido en una poderosa forma de expresión personal.
+                    </p>
+                    <p class="lead">
+                        Hoy en día, cada tatuaje representa una historia única, una idea o un momento importante en la vida 
+                        de quien lo lleva.
+                    </p>
+                </div>
+                <div class="col-md-5">
+                    <img src="/assets/img/logos/full-logo.webp" class="img-fluid featurette-image" style="filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));" alt="Logotipo">
+                </div>
+            </div>
+
+            <hr class="featurette-divider" />
+
+            <div id="estilos" class="row featurette my-5">
+                <div class="col-md-7">
+                    <div class="row gap-2 text-center">
+                        <% estilos.forEach(est => { %>
+                            <div class="col-md-3 align-content-center">
+                                <img src="<%= est.img %>" alt="Foto demostrativa de estilo" class="rounded-circle img-fluid mb-3" style="width:100px; height:100px;">
+                                <h5 class="fw-normal"><%= est.nombre %></h5>
+                                <p><%= est.descripcion %></p>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <h2 class="featurette-heading fw-normal lh-1">Estilos</h2>
+                    <p class="lead">
+                        Cada tatuaje tiene su propio estilo. Desde diseños minimalistas hasta composiciones complejas,
+                        nuestros artistas trabajan con diferentes técnicas para adaptarse a tu idea.
+                    </p>
+                    <p class="lead">
+                        Explora algunos de los estilos más populares y encuentra el que mejor represente tu personalidad.
+                    </p>
+                </div>
+            </div>
+
+            <hr class="featurette-divider" />
+
+            <div id="artistas" class="container my-5">
+                <h2 class="featurette-heading fw-normal lh-1 text-center mb-5">Nuestros artistas</h2>
+                <div class="row text-center">
+                    <% artistas.forEach(art => { %>
+                        <div class="col-md-4">
+                            <img src="<%= art.img %>" alt="<%= art.nombre %>" class="bg-placeholder-img rounded-circle img-fluid mb-3" style="width: 150px; height: 150px;">
+                            <h3 class="fw-normal"><%= art.nombre %></h3>
+                            <p><%= art.detalle %></p>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+
+            <hr class="featurette-divider" />
+
+            <div class="row featurette my-5">
+                <div class="col-md-5">
+                    <h2 class="featurette-heading fw-normal lh-1 text-<%= color %>">Ambiente <%= color === 'primary' ? 'BLUE' : 'GREEN' %></h2>
+                    <p class="lead">
+                        Este entorno muestra el comportamiento de la aplicación en un despliegue controlado.
+                        Permite identificar fácilmente si estás en una versión <strong>blue</strong> o <strong>green</strong>.
+                    </p>
+                    <p class="lead">
+                        Ideal para prácticas de despliegue continuo, balanceo de carga y pruebas en 
+                        infraestructura en la nube.
+                    </p>
+                </div>
+                <div class="col-md-1"></div>
+                <div class="col-md-6 align-items-center">
+                    <div class="row text-center">
+                        <% ambientes.forEach(amb => { %>
+                            <div class="col-lg-4 align-content-center">
+                                <img src="<%= amb.img %>" alt="<%= amb.nombre %>" class="bg-placeholder-img rounded-circle img-fluid" style="width: 125px; height: 125px;">
+                                <h2 class="fw-normal"><%= amb.nombre %></h2>
+                                <p><%= amb.descripcion %></p>
+                                <p><a href="https://drive.google.com/drive/folders/1-TfDjlPrrR7QIc4LR2jflM9v9xDYNTHv?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">Ver Trabajo</a></p>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="d-flex flex-wrap justify-content-between align-items-center py-4 border-top text-white">
+        <div class="col-md-4 d-flex align-items-center ms-5">
+            <a href="/" class="mb-3 me-2 mb-md-0 text-decoration-none lh-1" aria-label="Bootstrap">
+                <img src="/assets/img/logos/favicon.webp" alt="Logotipo" class="img-fluid" style="width: 6.25rem; object-fit: contain;">
+            </a>
+            <span class="mb-3 mb-md-0">&copy; 2026 Tattoo by FVCKING B0MB0</span>
+        </div>
+        <ul class="nav col-md-4 justify-content-end align-content-center list-unstyled text-decoration-none d-flex me-5">
+            <li class="ms-3">
+                <a href="mailto:24adonailorenzo@gmail.com?subject=Información&body=Hola, quiero información" target="_blank" rel="noopener noreferrer" aria-label="Gmail">
+                    <img src="/assets/img/icons/gmail_new_logo_icon_159149.webp" alt="Gmail" class="img-fluid" width="25">
+                </a>
+            </li>
+            <li class="ms-3">
+                <a href="https://www.instagram.com/carlos_miguel_its?igsh=NXNtNXdibjI1dGRq" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <img src="/assets/img/icons/instagram_logo_icon_168715.webp" alt="Instagram" class="img-fluid" width="25">
+                </a>
+            </li>
+            <li class="ms-3">
+                <a href="https://github.com/B0MB024" target="_blank" rel="noopener noreferrer" aria-label="Github">
+                    <img src="/assets/img/icons/Github_icon-icons.com_66788.webp" alt="Github" class="img-fluid" width="25">
+                </a>
+            </li>
+            <li class="ms-3">
+                <a href="https://www.linkedin.com/in/adonai-alnb-04sqr24ix4137/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                    <img src="/assets/img/icons/linkedin_logo_icon_189225.webp" alt="LinkedIn" class="img-fluid" width="25">
+                </a>
+            </li>
+        </ul>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

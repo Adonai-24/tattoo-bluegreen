@@ -1,0 +1,15 @@
+version: '3.9'
+services:
+  app_blue:
+    build: .
+    environment:
+      - DEPLOY_ENV=blue
+    ports:
+      - "3001:3000"
+
+  app_green:
+    build: .
+    environment:
+      - DEPLOY_ENV=green
+    ports:
+      - "3002:3000"
