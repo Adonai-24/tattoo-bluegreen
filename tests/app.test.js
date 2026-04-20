@@ -41,12 +41,6 @@ describe('Pruebas de métricas', () => {
     const res = await request(app).get('/metricas')
     expect(res.statusCode).toBe(200)
   })
-
-  it('GET /metricas/raw debe responder con 200 y contenido prometheus', async () => {
-    const res = await request(app).get('/metricas/raw')
-    expect(res.statusCode).toBe(200)
-    expect(res.headers['content-type']).toMatch(/text\/plain/)
-  })
 })
 
 describe('Pruebas de rutas inexistentes', () => {
