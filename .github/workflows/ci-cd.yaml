@@ -111,8 +111,8 @@ jobs:
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd /home/tattoo-bluegreen
-            git fetch origin main
-            git reset --hard origin/main
+            sudo git fetch origin main
+            sudo git reset --hard origin/main
 
       - name: Detect current environment
         id: detect-env
