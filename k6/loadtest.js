@@ -31,7 +31,6 @@ export default function () {
   errorRate.add(!rootOk)
   sleep(1)
 
-
   const disenosRes = http.get(`${BASE_URL}/disenos`)
   disenosDuration.add(disenosRes.timings.duration)
 

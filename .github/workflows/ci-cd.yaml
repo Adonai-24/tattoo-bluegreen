@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
 
 jobs:
   test:
@@ -123,4 +123,3 @@ jobs:
             curl -f http://10.0.2.2:3002/health || exit 1
             sudo sed -i 's|proxy_pass http://app_blue;|proxy_pass http://app_green;|' /etc/nginx/sites-available/default
             sudo systemctl reload nginx
-

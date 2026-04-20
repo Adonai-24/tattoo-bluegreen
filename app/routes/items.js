@@ -85,7 +85,7 @@ const diseños = [
 ]
 
 const env = process.env.DEPLOY_ENV
-const color = env === 'blue' ? 'primary' : 'success';
+const color = env === 'blue' ? 'primary' : 'success'
 
 router.get('/', (req, res) => {
   res.render('items', { diseños, color })

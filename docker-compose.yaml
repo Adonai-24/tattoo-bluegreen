@@ -5,11 +5,11 @@ services:
     environment:
       - DEPLOY_ENV=blue
     ports:
-      - "3001:3000"
+      - '3001:3000'
 
   app_green:
     build: .
     environment:
       - DEPLOY_ENV=green
     ports:
-      - "3002:3000"
+      - '3002:3000'
