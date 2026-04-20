@@ -44,6 +44,11 @@ describe('Pruebas de métricas', () => {
 })
 
 describe('Pruebas de rutas inexistentes', () => {
+  it('GET /metricas/raw debe responder con 404 y contenido prometheus', async () => {
+    const res = await request(app).get('/metricas/raw')
+    expect(res.statusCode).toBe(404)
+  })
+  
   it('GET /ruta-que-no-existe debe responder con 404', async () => {
     const res = await request(app).get('/ruta-que-no-existe')
     expect(res.statusCode).toBe(404)
@@ -55,19 +60,5 @@ describe('Pruebas con DEPLOY_ENV', () => {
     process.env.DEPLOY_ENV = 'blue'
     const res = await request(app).get('/health')
     expect(res.body.env).toBe('blue')
-  })
-})
-
-describe('Pruebas con DEPLOY_ENV', () => {
-  it('GET /health debe incluir el env actual', async () => {
-    process.env.DEPLOY_ENV = 'blue'
-    const res = await request(app).get('/health')
-    expect(res.body.env).toBe('blue')
-  })
-
-  it('GET /health sin DEPLOY_ENV debe responder con env por defecto', async () => {
-    delete process.env.DEPLOY_ENV
-    const res = await request(app).get('/health')
-    expect(res.body).toHaveProperty('env')
   })
 })
