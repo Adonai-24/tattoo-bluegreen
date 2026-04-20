@@ -66,4 +66,8 @@ router.get('/', (req, res) => {
   res.render('index', { ambientes, estilos, artistas, color })
 })
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', env })
+})
+
 module.exports = router
