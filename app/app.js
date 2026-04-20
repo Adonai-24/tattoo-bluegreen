@@ -18,13 +18,13 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, '../public')))
 
-app.use('/', indexRouter)
-app.use('/disenos', itemsRouter)
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
     env: process.env.DEPLOY_ENV || 'not-set'
   })
 })
+app.use('/', indexRouter)
+app.use('/disenos', itemsRouter)
 
 module.exports = app
