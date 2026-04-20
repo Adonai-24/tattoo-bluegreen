@@ -22,13 +22,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="nav navbar-nav ms-lg-auto ms-4">
                     <li class="nav-item mx-lg-2">
-                        <a class="nav-link fw-light" href="/">Inicio</a>
+                        <a class="nav-link fw-bold border-bottom border-2 active" aria-current="page" href="/">Inicio</a>
                     </li>
                     <li class="nav-item mx-lg-2">
-                        <a class="nav-link fw-bold border-bottom border-2 active" aria-current="page" href="/disenos">Diseños</a>
+                        <a class="nav-link fw-light" href="/disenos">Diseños</a>
                     </li>
                     <li class="nav-item mx-lg-2">
-                        <a class="nav-link fw-light" href="/metricas">Metricas</a>
+                        <a class="nav-link fw-bold border-bottom border-2 active" aria-current="page" href="/metricas">Metricas</a>
                     </li>
                     <li class="nav-item mx-lg-2">
                         <a class="nav-link fw-light" href="/sonarqube" target="_blank" rel="noopener noreferrer">Sonarqube</a>
@@ -44,39 +44,11 @@
         </div>
     </header>
 
-    <main class="container">
-        <section class="mt-5 text-center container">
-            <div class="row pt-5 pb-4">
-                <div class="col-lg-6 col-md-8 mx-auto">
-                    <h1 class="fw-light mt-4">Nuestros diseños</h1>
-                    <p class="lead text-white opacity-75">Explora una colección de tatuajes diseñados por nuestros artistas. 
-                Encuentra inspiración o elige el estilo perfecto para tu próximo tatuaje.</p>
-                </div>
-            </div>
-        </section>
-
-        <hr class="featurette-divider" />
-
-        <section class="album py-5">
-            <div class="container">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-                    <% diseños.forEach(dis => { %>
-                        <div class="col">
-                            <div class="card mb-4 rounded-4 shadow-sm border-<%= color %>">
-                                <img src="<%= dis.imagen %>" class="card-img-top rounded-top-4" alt="<%= dis.nombre %>" style="height: 175px; object-fit: contain;">
-                                <div class="card-header py-1 text-bg-<%= color %> text-center">
-                                    <h4 class="my-0 fw-bold"><%= dis.nombre %></h4>
-                                </div>
-                                <div class="card-body rounded-bottom-4 text-center bg-black text-bg-dark">
-                                    <h1 class="card-title">$<%= dis.precio %>.00 MXN</h1>
-                                    <p class="card-text"><%= dis.descripcion %> <%= dis.detalles %></p>
-                                </div>
-                            </div>
-                        </div>
-                    <% }) %>  
-                </div>
-            </div>
-        </section>
+    <main>
+        <div class="container">
+            <h2 class="featurette-heading fw-normal lh-1 mb-5">Metricas de la aplicación</h2>
+            <p class="lead text-center"><%= metricas %></p>
+        </div>
     </main>
 
     <footer class="d-flex flex-wrap justify-content-between align-items-center py-4 border-top text-white">
