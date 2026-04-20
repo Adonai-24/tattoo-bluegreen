@@ -50,6 +50,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Install dependencies and run tests with coverage
+        run: |
+          npm install
+          npm test
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:

@@ -28,6 +28,13 @@
     "prettier": "^3.8.1",
     "supertest": "^6.3.0"
   },
+  "jest": {
+    "coverageReporters": [
+      "lcov",
+      "text"
+    ],
+    "coverageDirectory": "coverage"
+  },
   "keywords": [],
   "author": "Adonai Lorenzo",
   "license": "ISC",
