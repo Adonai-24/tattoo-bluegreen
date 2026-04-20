@@ -67,7 +67,7 @@ router.get('/', (req, res) => {
 })
 
 router.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', env })
+  res.status(200).json({ status: 'ok', env: env })
 })
 
 module.exports = router
