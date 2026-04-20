@@ -58,7 +58,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=tattoo-bluegreen
-            -Dsonar.projectName=Tattoo BlueGreen
+            -Dsonar.projectName=Tattoo-BlueGreen
             -Dsonar.sources=app
             -Dsonar.tests=tests
             -Dsonar.test.inclusions=tests/**/*.test.js
