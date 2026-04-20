@@ -116,5 +116,19 @@ jobs:
             docker-compose stop app_green || true
             docker-compose rm -f app_green || true
             docker-compose up -d --no-deps --build app_green
+
+      - name: Switch Nginx to Green
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.NGINX_TATTOO_HOST }}
+          username: ${{ secrets.TATTOO_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+          proxy_username: ${{ secrets.TATTOO_USER }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
             sudo sed -i 's|proxy_pass http://app_blue;|proxy_pass http://app_green;|' /etc/nginx/sites-available/default
             sudo systemctl reload nginx
+            curl -f http://34.51.83.32/health || exit 1
