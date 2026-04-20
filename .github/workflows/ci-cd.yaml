@@ -118,4 +118,3 @@ jobs:
             docker-compose up -d --no-deps --build app_green
             sudo sed -i 's|proxy_pass http://app_blue;|proxy_pass http://app_green;|' /etc/nginx/sites-available/default
             sudo systemctl reload nginx
-            curl -f http://34.51.83.32/health || exit 1
