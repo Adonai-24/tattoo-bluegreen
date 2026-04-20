@@ -1,4 +1,5 @@
 require('dotenv').config()
+const client = require('prom-client')
 var express = require('express')
 var path = require('path')
 var cookieParser = require('cookie-parser')
@@ -23,6 +24,11 @@ app.get('/health', (req, res) => {
     status: 'ok',
     env: process.env.DEPLOY_ENV || 'not-set'
   })
+})
+client.collectDefaultMetrics()
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType)
+  res.end(await client.register.metrics())
 })
 app.use('/', indexRouter)
 app.use('/disenos', itemsRouter)

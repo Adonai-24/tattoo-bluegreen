@@ -142,7 +142,7 @@ jobs:
           echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
           echo "NEXT_ENV=$NEXT_ENV"
           echo "CURRENT_ENV=$CURRENT_ENV"
-      
+
       - name: Deploy new container
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -199,3 +199,17 @@ jobs:
               exit 1
             fi
 
+      - name: Deploy monitoring stack
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DOCKER_TATTOO_HOST }}
+          username: ${{ secrets.TATTOO_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+          proxy_username: ${{ secrets.TATTOO_USER }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            cd /home/tattoo-bluegreen
+            docker-compose -f docker-compose.prom.yml up -d

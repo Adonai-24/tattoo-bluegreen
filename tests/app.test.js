@@ -27,7 +27,7 @@ describe('Pruebas de atributos necesarios', () => {
     expect(res.statusCode).toBe(200)
     expect(res.text).toMatch(/Fénix Oscuro/)
   })
-  
+
   it('GET /health debe responder con 200 y status ok', async () => {
     const res = await request(app).get('/health')
     expect(res.statusCode).toBe(200)
