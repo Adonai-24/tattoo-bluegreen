@@ -54,7 +54,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_TATTOO }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_TATTOO }}
         with:
           args: >
             -Dsonar.projectKey=tattoo-bluegreen
