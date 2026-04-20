@@ -121,8 +121,11 @@ jobs:
 
       - name: Set environment variables
         run: |
-          echo "${{ steps.detect-env.outputs.stdout }}" > detect.txt
-          source detect.txt
+          OUTPUT="${{ steps.detect-env.outputs.stdout }}"
+          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
+          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
+          echo "NEXT_ENV=$NEXT_ENV"
+          echo "CURRENT_ENV=$CURRENT_ENV"
           echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
           echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
 
@@ -161,6 +164,8 @@ jobs:
           script: |
             sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" /etc/nginx/sites-available/default
             sudo systemctl reload nginx
+            echo "Esperando a que la app arranque..."
+            sleep 7
             if ! curl -f http://34.51.83.32/health; then
               echo "Healthcheck falló, rollback a $CURRENT_ENV..."
               sudo sed -i "s|proxy_pass http://app_${NEXT_ENV};|proxy_pass http://app_${CURRENT_ENV};|" /etc/nginx/sites-available/default
