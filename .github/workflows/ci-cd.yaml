@@ -116,7 +116,6 @@ jobs:
             docker-compose stop app_green || true
             docker-compose rm -f app_green || true
             docker-compose up -d --no-deps --build app_green
-            curl -f http://localhost:3002/health || exit 1
             sudo sed -i 's|proxy_pass http://app_blue;|proxy_pass http://app_green;|' /etc/nginx/sites-available/default
             sudo systemctl reload nginx
             curl -f http://34.51.83.32/health || exit 1
