@@ -64,8 +64,7 @@ jobs:
             -Dsonar.test.inclusions=tests/**/*.test.js
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.qualitygate.wait=true
-  
-jobs:
+
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
