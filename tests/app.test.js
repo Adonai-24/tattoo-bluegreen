@@ -57,3 +57,17 @@ describe('Pruebas con DEPLOY_ENV', () => {
     expect(res.body.env).toBe('blue')
   })
 })
+
+describe('Pruebas con DEPLOY_ENV', () => {
+  it('GET /health debe incluir el env actual', async () => {
+    process.env.DEPLOY_ENV = 'blue'
+    const res = await request(app).get('/health')
+    expect(res.body.env).toBe('blue')
+  })
+
+  it('GET /health sin DEPLOY_ENV debe responder con env por defecto', async () => {
+    delete process.env.DEPLOY_ENV
+    const res = await request(app).get('/health')
+    expect(res.body).toHaveProperty('env')
+  })
+})
