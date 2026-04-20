@@ -112,14 +112,9 @@ jobs:
           script: |
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
-            docker stop app_green || true
-            docker rm app_green || true
-            docker run -d \
-              --name app_green \
-              -e DEPLOY_ENV=green \
-              -p 3002:3000 \
-              --restart always \
-              ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
+            cd /home/tattoo-bluegreen
+            docker-compose down app_green || true
+            docker-compose up -d --no-deps --build app_green
             curl -f http://10.0.2.2:3002/health || exit 1
             sudo sed -i 's|proxy_pass http://app_blue;|proxy_pass http://app_green;|' /etc/nginx/sites-available/default
             sudo systemctl reload nginx
