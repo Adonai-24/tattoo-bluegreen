@@ -110,15 +110,21 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script_stop: true
           script: |
             if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
-              echo "next_env=green" >> $GITHUB_ENV
-              echo "current_env=blue" >> $GITHUB_ENV
+              echo "NEXT_ENV=green"
+              echo "CURRENT_ENV=blue"
             else
-              echo "next_env=blue" >> $GITHUB_ENV
-              echo "current_env=green" >> $GITHUB_ENV
+              echo "NEXT_ENV=blue"
+              echo "CURRENT_ENV=green"
             fi
+
+      - name: Set environment variables
+        run: |
+          echo "${{ steps.detect-env.outputs.stdout }}" > detect.txt
+          source detect.txt
+          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
+          echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
 
       - name: Deploy new container
         uses: appleboy/ssh-action@v1.0.3
@@ -135,9 +141,9 @@ jobs:
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
             cd /home/tattoo-bluegreen
-            docker-compose stop app_${{ env.next_env }} || true
-            docker-compose rm -f app_${{ env.next_env }} || true
-            DEPLOY_ENV=${{ env.next_env }} docker-compose up -d --no-deps --build app_${{ env.next_env }}
+            docker-compose stop app_${{ env.NEXT_ENV }} || true
+            docker-compose rm -f app_${{ env.NEXT_ENV }} || true
+            DEPLOY_ENV=${{ env.NEXT_ENV }} docker-compose up -d --no-deps --build app_${{ env.NEXT_ENV }}
 
       - name: Switch Nginx
         uses: appleboy/ssh-action@v1.0.3
@@ -154,8 +160,8 @@ jobs:
             sudo sed -i "s|proxy_pass http://app_${{ env.current_env }};|proxy_pass http://app_${{ env.next_env }};|" /etc/nginx/sites-available/default
             sudo systemctl reload nginx
             if ! curl -f http://34.51.83.32/health; then
-              echo "Healthcheck falló, rollback a ${{ env.current_env }}..."
-              sudo sed -i "s|proxy_pass http://app_${{ env.next_env }};|proxy_pass http://app_${{ env.current_env }};|" /etc/nginx/sites-available/default
+              echo "Healthcheck falló, rollback a ${{ env.CURRENT_ENV }}..."
+              sudo sed -i "s|proxy_pass http://app_${{ env.NEXT_ENV }};|proxy_pass http://app_${{ env.CURRENT_ENV }};|" /etc/nginx/sites-available/default
               sudo systemctl reload nginx
               exit 1
             fi
