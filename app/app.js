@@ -7,7 +7,6 @@ var logger = require('morgan')
 
 const indexRouter = require('./routes/index')
 const itemsRouter = require('./routes/items')
-// const metricasRouter = require('./routes/metricas')
 
 var app = express()
 
@@ -33,6 +32,5 @@ app.get('/metricas', async (req, res) => {
   res.set('Content-Type', client.register.contentType)
   res.end(await client.register.metrics())
 })
-// app.use('/metricas', metricasRouter)
 
 module.exports = app

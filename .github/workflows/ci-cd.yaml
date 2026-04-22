@@ -41,39 +41,39 @@ jobs:
           K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN_TATTOO }}
           K6_CLOUD_PROJECT_ID: ${{ secrets.K6_PROJECT_ID_TATTOO }}
 
-  # sonarqube-analysis:
-  #   runs-on: ubuntu-latest
-  #   needs: test
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  sonarqube-analysis:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 22.x
-  #         cache: 'npm'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
 
-  #     - name: Install dependencies and run tests with coverage
-  #       run: |
-  #         npm install
-  #         npm test
+      - name: Install dependencies and run tests with coverage
+        run: |
+          npm install
+          npm test
 
-  #     - name: SonarQube Scan
-  #       uses: SonarSource/sonarqube-scan-action@master
-  #       env:
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_TATTOO }}
-  #         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_TATTOO }}
-  #       with:
-  #         args: >
-  #           -Dsonar.projectKey=tattoo-bluegreen
-  #           -Dsonar.projectName=Tattoo-BlueGreen
-  #           -Dsonar.sources=app
-  #           -Dsonar.tests=tests
-  #           -Dsonar.test.inclusions=tests/**/*.test.js
-  #           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-  #           -Dsonar.qualitygate.wait=true
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_TATTOO }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_TATTOO }}
+        with:
+          args: >
+            -Dsonar.projectKey=tattoo-bluegreen
+            -Dsonar.projectName=Tattoo-BlueGreen
+            -Dsonar.sources=app
+            -Dsonar.tests=tests
+            -Dsonar.test.inclusions=tests/**/*.test.js
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.qualitygate.wait=true
 
   build-and-push:
     runs-on: ubuntu-latest
