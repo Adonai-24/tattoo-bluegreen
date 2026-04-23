@@ -181,8 +181,8 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          envs: NEXT_ENV,CURRENT_ENV
           script: |
-            source /tmp/deploy_env
             echo ">> Deploying NEXT=$NEXT_ENV  CURRENT=$CURRENT_ENV"
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
@@ -202,8 +202,8 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          envs: NEXT_ENV,CURRENT_ENV
           script: |
-            source /tmp/deploy_env
             echo ">> Switching nginx: $CURRENT_ENV -> $NEXT_ENV"
             sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" \
               /etc/nginx/sites-available/default
