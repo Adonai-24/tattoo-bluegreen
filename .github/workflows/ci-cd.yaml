@@ -158,17 +158,26 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: cat /tmp/deploy_env
+          script: |
+            NEXT_ENV=$(grep NEXT_ENV /tmp/deploy_env | cut -d '=' -f2)
+            CURRENT_ENV=$(grep CURRENT_ENV /tmp/deploy_env | cut -d '=' -f2)
+            echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_OUTPUT
+            echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_OUTPUT
+
+      # - name: Set environment variables
+      #   run: |
+      #     OUTPUT="${{ steps.read-env.outputs.stdout }}"
+      #     NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
+      #     CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
+      #     echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
+      #     echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
+      #     echo "NEXT_ENV=$NEXT_ENV"
+      #     echo "CURRENT_ENV=$CURRENT_ENV"
 
       - name: Set environment variables
         run: |
-          OUTPUT="${{ steps.read-env.outputs.stdout }}"
-          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
-          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
-          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
-          echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
-          echo "NEXT_ENV=$NEXT_ENV"
-          echo "CURRENT_ENV=$CURRENT_ENV"
+          echo "NEXT_ENV=${{ steps.read-env.outputs.NEXT_ENV }}" >> $GITHUB_ENV
+          echo "CURRENT_ENV=${{ steps.read-env.outputs.CURRENT_ENV }}" >> $GITHUB_ENV
 
       # - name: Deploy new container
       #   uses: appleboy/ssh-action@v1.0.3
@@ -199,7 +208,7 @@ jobs:
       #       DEPLOY_ENV=${NEXT_ENV} docker-compose up -d --no-deps --build app_${NEXT_ENV}
       #       echo "NEXT_ENV=${NEXT_ENV}"
       #       echo "CURRENT_ENV=${CURRENT_ENV}"
-      
+
       - name: Deploy new container
         uses: appleboy/ssh-action@v1.0.3
         with:
