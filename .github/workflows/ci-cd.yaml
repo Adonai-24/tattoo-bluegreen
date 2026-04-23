@@ -152,7 +152,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           sudo apt-get install -y sshpass 2>/dev/null
-          
+
           CURRENT=$(sshpass -p "${{ secrets.SSH_PASSPHRASE }}" \
             ssh -o StrictHostKeyChecking=no \
             -o ProxyCommand="sshpass -p '${{ secrets.SSH_PASSPHRASE }}' \
@@ -161,9 +161,9 @@ jobs:
             -i ~/.ssh/deploy_key \
             ${{ secrets.TATTOO_USER }}@${{ secrets.NGINX_TATTOO_HOST }} \
             "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default && echo blue || echo green")
-          
+
           if [ "$CURRENT" = "blue" ]; then NEXT="green"; else NEXT="blue"; fi
-          
+
           echo "CURRENT_ENV=$CURRENT" >> $GITHUB_ENV
           echo "NEXT_ENV=$NEXT" >> $GITHUB_ENV
           echo "Detected CURRENT=$CURRENT -> NEXT=$NEXT"
