@@ -108,9 +108,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
-    permissions:
-      contents: read
-      actions: write
     steps:
       - name: Update repo on docker-vm
         uses: appleboy/ssh-action@v1.0.3
@@ -128,24 +125,73 @@ jobs:
             sudo git fetch origin main
             sudo git reset --hard origin/main
 
-      - name: Detect and export environments
+      # - name: Detect current environment
+      #   id: detect-env
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.NGINX_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script: |
+      #       if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
+      #         echo "NEXT_ENV=green" > /tmp/deploy_env
+      #         echo "CURRENT_ENV=blue" >> /tmp/deploy_env
+      #       else
+      #         echo "NEXT_ENV=blue" > /tmp/deploy_env
+      #         echo "CURRENT_ENV=green" >> /tmp/deploy_env
+      #       fi
+
+      - name: Detect current environment
         run: |
-          RESPONSE=$(curl -s \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/variables/CURRENT_ENV")
-          CURRENT=$(echo "$RESPONSE" | grep -o '"value":"[^"]*"' | cut -d'"' -f4)
-          CURRENT=${CURRENT:-blue}
-
-          if [ "$CURRENT" = "blue" ]; then
-            NEXT="green"
-          else
-            NEXT="blue"
-          fi
-
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          sudo apt-get install -y sshpass 2>/dev/null
+          
+          CURRENT=$(sshpass -p "${{ secrets.SSH_PASSPHRASE }}" \
+            ssh -o StrictHostKeyChecking=no \
+            -o ProxyCommand="sshpass -p '${{ secrets.SSH_PASSPHRASE }}' \
+              ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key \
+              -W %h:%p ${{ secrets.TATTOO_USER }}@${{ secrets.BASTION_TATTOO_HOST }}" \
+            -i ~/.ssh/deploy_key \
+            ${{ secrets.TATTOO_USER }}@${{ secrets.NGINX_TATTOO_HOST }} \
+            "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default && echo blue || echo green")
+          
+          if [ "$CURRENT" = "blue" ]; then NEXT="green"; else NEXT="blue"; fi
+          
           echo "CURRENT_ENV=$CURRENT" >> $GITHUB_ENV
           echo "NEXT_ENV=$NEXT" >> $GITHUB_ENV
-          echo "Detected CURRENT=$CURRENT -> deploying to NEXT=$NEXT"
+          echo "Detected CURRENT=$CURRENT -> NEXT=$NEXT"
+          rm -f ~/.ssh/deploy_key
+
+      # - name: Read environment from remote
+      #   id: read-env
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.NGINX_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script: cat /tmp/deploy_env
+
+      # - name: Set environment variables
+      #   run: |
+      #     OUTPUT="${{ steps.read-env.outputs.stdout }}"
+      #     NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
+      #     CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
+      #     echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
+      #     echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
+      #     echo "NEXT_ENV=$NEXT_ENV"
+      #     echo "CURRENT_ENV=$CURRENT_ENV"
 
       - name: Deploy new container
         uses: appleboy/ssh-action@v1.0.3
@@ -160,6 +206,14 @@ jobs:
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
           envs: NEXT_ENV,CURRENT_ENV
           script: |
+            # if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
+            #   "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
+            #   NEXT_ENV=green
+            #   CURRENT_ENV=blue
+            # else
+            #   NEXT_ENV=blue
+            #   CURRENT_ENV=green
+            # fi
             echo ">> Deploying NEXT=$NEXT_ENV  CURRENT=$CURRENT_ENV"
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
@@ -167,6 +221,10 @@ jobs:
             docker-compose stop app_${NEXT_ENV} || true
             docker-compose rm -f app_${NEXT_ENV} || true
             DEPLOY_ENV=${NEXT_ENV} docker-compose up -d --no-deps --build app_${NEXT_ENV}
+            # echo "NEXT_ENV=${NEXT_ENV}" > /tmp/deploy_env
+            echo "NEXT_ENV=${NEXT_ENV}"
+            # echo "CURRENT_ENV=${CURRENT_ENV}" >> /tmp/deploy_env
+            echo "CURRENT_ENV=${CURRENT_ENV}"
 
       - name: Switch Nginx
         uses: appleboy/ssh-action@v1.0.3
@@ -181,6 +239,7 @@ jobs:
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
           envs: NEXT_ENV,CURRENT_ENV
           script: |
+            # source /tmp/deploy_env
             echo ">> Switching nginx: $CURRENT_ENV -> $NEXT_ENV"
             sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" \
               /etc/nginx/sites-available/default
@@ -208,12 +267,3 @@ jobs:
           script: |
             cd /home/tattoo-bluegreen
             docker-compose -f docker-compose.prom.yml up -d
-
-      - name: Update current env variable
-        if: success()
-        run: |
-          curl -s -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/variables/CURRENT_ENV" \
-            -d "{\"name\":\"CURRENT_ENV\",\"value\":\"${{ env.NEXT_ENV }}\"}"
