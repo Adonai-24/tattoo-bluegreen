@@ -125,36 +125,24 @@ jobs:
             sudo git fetch origin main
             sudo git reset --hard origin/main
 
-      - name: Detect current environment
-        id: detect-env
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.NGINX_TATTOO_HOST }}
-          username: ${{ secrets.TATTOO_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
-          proxy_username: ${{ secrets.TATTOO_USER }}
-          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
-              echo "NEXT_ENV=green"
-              echo "CURRENT_ENV=blue"
-            else
-              echo "NEXT_ENV=blue"
-              echo "CURRENT_ENV=green"
-            fi
-
-      - name: Set environment variables
+      - name: Detect and export environments
         run: |
-          OUTPUT="${{ steps.detect-env.outputs.stdout }}"
-          echo "Raw output: $OUTPUT"
-          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r\n ')
-          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r\n ')
-          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
-          echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
-          echo "Parsed -> NEXT=$NEXT_ENV  CURRENT=$CURRENT_ENV"
+          RESPONSE=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/variables/CURRENT_ENV")
+          CURRENT=$(echo "$RESPONSE" | grep -o '"value":"[^"]*"' | cut -d'"' -f4)
+          CURRENT=${CURRENT:-blue}
+
+          if [ "$CURRENT" = "blue" ]; then
+            NEXT="green"
+          else
+            NEXT="blue"
+          fi
+
+          echo "CURRENT_ENV=$CURRENT" >> $GITHUB_ENV
+          echo "NEXT_ENV=$NEXT" >> $GITHUB_ENV
+          echo "Detected CURRENT=$CURRENT -> deploying to NEXT=$NEXT"
 
       - name: Deploy new container
         uses: appleboy/ssh-action@v1.0.3
@@ -217,3 +205,12 @@ jobs:
           script: |
             cd /home/tattoo-bluegreen
             docker-compose -f docker-compose.prom.yml up -d
+
+      - name: Update current env variable
+        if: success()
+        run: |
+          curl -s -X PATCH \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/variables/CURRENT_ENV" \
+            -d "{\"name\":\"CURRENT_ENV\",\"value\":\"${{ env.NEXT_ENV }}\"}"
