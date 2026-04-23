@@ -159,10 +159,7 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            NEXT_ENV=$(grep NEXT_ENV /tmp/deploy_env | cut -d '=' -f2)
-            CURRENT_ENV=$(grep CURRENT_ENV /tmp/deploy_env | cut -d '=' -f2)
-            echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_OUTPUT
-            echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_OUTPUT
+            cat /tmp/deploy_env
 
       # - name: Set environment variables
       #   run: |
@@ -176,8 +173,15 @@ jobs:
 
       - name: Set environment variables
         run: |
-          echo "NEXT_ENV=${{ steps.read-env.outputs.NEXT_ENV }}" >> $GITHUB_ENV
-          echo "CURRENT_ENV=${{ steps.read-env.outputs.CURRENT_ENV }}" >> $GITHUB_ENV
+          OUTPUT="${{ steps.read-env.outputs.stdout }}"
+          echo "RAW OUTPUT:"
+          echo "$OUTPUT"
+          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | head -n1 | sed 's/.*NEXT_ENV=//')
+          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | head -n1 | sed 's/.*CURRENT_ENV=//')
+          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
+          echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
+          echo "Parsed NEXT_ENV=$NEXT_ENV"
+          echo "Parsed CURRENT_ENV=$CURRENT_ENV"
 
       # - name: Deploy new container
       #   uses: appleboy/ssh-action@v1.0.3
