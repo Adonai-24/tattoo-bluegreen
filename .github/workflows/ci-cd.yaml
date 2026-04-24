@@ -126,6 +126,7 @@ jobs:
       #       sudo git reset --hard origin/main
 
       - name: Detect current environment
+        id: detect-env
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.NGINX_TATTOO_HOST }}
@@ -138,11 +139,11 @@ jobs:
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
-              echo "NEXT_ENV=green" >> $GITHUB_ENV
-              echo "CURRENT_ENV=blue" >> $GITHUB_ENV
+              echo "NEXT_ENV=green"
+              echo "CURRENT_ENV=blue"
             else
-              echo "NEXT_ENV=blue" >> $GITHUB_ENV
-              echo "CURRENT_ENV=green" >> $GITHUB_ENV
+              echo "NEXT_ENV=blue"
+              echo "CURRENT_ENV=green"
             fi
             # if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
             #   "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
@@ -155,6 +156,14 @@ jobs:
             # sudo scp /tmp/deploy_env ${TATTOO_USER}@${NGINX_TATTOO_HOST}:/tmp/deploy_env
             # sudo scp /tmp/deploy_env ${{ secrets.DOCKER_TATTOO_HOST }}:/tmp/deploy_env
             # exit 0
+      
+      - name: Set environment variables
+        run: |
+          OUTPUT="${{ steps.detect-env.outputs.stdout }}"
+          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
+          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
+          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
+          echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
       
       - name: Read environment variables
         run: |
