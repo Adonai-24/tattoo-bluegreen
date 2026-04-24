@@ -32,5 +32,8 @@ app.get('/metricas', async (req, res) => {
   res.set('Content-Type', client.register.contentType)
   res.end(await client.register.metrics())
 })
+app.get('/hello', async (req, res) => {
+  res.status(200).json({ message: 'Hello, World!' })
+})
 
 module.exports = app
