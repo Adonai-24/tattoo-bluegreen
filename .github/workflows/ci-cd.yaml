@@ -139,9 +139,6 @@ jobs:
 
       - name: Deploy new container
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          NEXT_ENV: ${{ env.NEXT_ENV }}
-          CURRENT_ENV: ${{ env.CURRENT_ENV }}
         with:
           host: ${{ secrets.DOCKER_TATTOO_HOST }}
           username: ${{ secrets.TATTOO_USER }}
@@ -151,6 +148,7 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          envs: NEXT_ENV,CURRENT_ENV
           script: |
             echo ">> Deploying NEXT=$NEXT_ENV CURRENT=$CURRENT_ENV"
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
@@ -164,9 +162,6 @@ jobs:
 
       - name: Switch Nginx
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          NEXT_ENV: ${{ env.NEXT_ENV }}
-          CURRENT_ENV: ${{ env.CURRENT_ENV }}
         with:
           host: ${{ secrets.NGINX_TATTOO_HOST }}
           username: ${{ secrets.TATTOO_USER }}
@@ -176,6 +171,7 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          envs: NEXT_ENV,CURRENT_ENV
           script: |
             echo ">> Switching nginx: $CURRENT_ENV -> $NEXT_ENV"
             sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" \
