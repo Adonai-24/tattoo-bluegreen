@@ -125,20 +125,25 @@ jobs:
       #       sudo git fetch origin main
       #       sudo git reset --hard origin/main
 
-      - name: Detect and set current environment
-        id: detect-env
+      - name: Detect current environment
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.BASTION_TATTOO_HOST }}
+          host: ${{ secrets.NGINX_TATTOO_HOST }}
           username: ${{ secrets.TATTOO_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+          proxy_username: ${{ secrets.TATTOO_USER }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            mkdir -p ~/.ssh
-            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/ssh_key
-            chmod 600 ~/.ssh/ssh_key
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/ssh_key ${{ secrets.TATTOO_USER }}@${{ secrets.NGINX_TATTOO_HOST }} \
-              "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default && echo 'Está en BLUE' || echo 'Está en GREEN'"
+            if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
+              echo "NEXT_ENV=green" >> $GITHUB_ENV
+              echo "CURRENT_ENV=blue" >> $GITHUB_ENV
+            else
+              echo "NEXT_ENV=blue" >> $GITHUB_ENV
+              echo "CURRENT_ENV=green" >> $GITHUB_ENV
+            fi
             # if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
             #   "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
             #   echo "NEXT_ENV=green" > /tmp/deploy_env
@@ -149,8 +154,12 @@ jobs:
             # fi
             # sudo scp /tmp/deploy_env ${TATTOO_USER}@${NGINX_TATTOO_HOST}:/tmp/deploy_env
             # sudo scp /tmp/deploy_env ${{ secrets.DOCKER_TATTOO_HOST }}:/tmp/deploy_env
-            
             # exit 0
+      
+      - name: Read environment variables
+        run: |
+          echo "NEXT_ENV=${NEXT_ENV}"
+          echo "CURRENT_ENV=${CURRENT_ENV}"
 
       # - name: Detect current environment
       #   id: detect-env
@@ -195,8 +204,8 @@ jobs:
       #     CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
       #     echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
       #     echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
-      #     echo "NEXT_ENV=${NEXT_ENV}"
-      #     echo "CURRENT_ENV=${CURRENT_ENV}"
+      #     echo "NEXT_ENV=$NEXT_ENV"
+      #     echo "CURRENT_ENV=$CURRENT_ENV"
 
       # - name: Deploy new container
       #   uses: appleboy/ssh-action@v1.0.3
