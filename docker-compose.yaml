@@ -1,14 +1,14 @@
 version: '3.9'
 services:
   app_blue:
-    build: .
+    image: ghcr.io/adonai-24/tattoo-bluegreen:main
     environment:
       - DEPLOY_ENV=blue
     ports:
       - '3001:3000'
 
   app_green:
-    build: .
+    image: ghcr.io/adonai-24/tattoo-bluegreen:main
     environment:
       - DEPLOY_ENV=green
     ports:
