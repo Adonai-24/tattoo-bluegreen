@@ -125,46 +125,50 @@ jobs:
       #       sudo git fetch origin main
       #       sudo git reset --hard origin/main
 
+      # - name: Detect current environment
+      #   id: detect
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.NGINX_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script_stop: true
+      #     script: |
+      #       if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
+      #         echo "NEXT_ENV=green"
+      #         echo "CURRENT_ENV=blue"
+      #       else
+      #         echo "NEXT_ENV=blue"
+      #         echo "CURRENT_ENV=green"
+      #       fi
+      #       # if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
+      #       #   "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
+      #       #   echo "NEXT_ENV=green" > /tmp/deploy_env
+      #       #   echo "CURRENT_ENV=blue" >> /tmp/deploy_env
+      #       # else
+      #       #   echo "NEXT_ENV=blue" > /tmp/deploy_env
+      #       #   echo "CURRENT_ENV=green" >> /tmp/deploy_env
+      #       # fi
+      #       # sudo scp /tmp/deploy_env ${TATTOO_USER}@${NGINX_TATTOO_HOST}:/tmp/deploy_env
+      #       # sudo scp /tmp/deploy_env ${{ secrets.DOCKER_TATTOO_HOST }}:/tmp/deploy_env
+      #       # exit 0
+
       - name: Detect current environment
-        id: detect
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.NGINX_TATTOO_HOST }}
-          username: ${{ secrets.TATTOO_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
-          proxy_username: ${{ secrets.TATTOO_USER }}
-          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script_stop: true
-          script: |
-            if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
-              echo "NEXT_ENV=green"
-              echo "CURRENT_ENV=blue"
-            else
-              echo "NEXT_ENV=blue"
-              echo "CURRENT_ENV=green"
-            fi
-            # if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
-            #   "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
-            #   echo "NEXT_ENV=green" > /tmp/deploy_env
-            #   echo "CURRENT_ENV=blue" >> /tmp/deploy_env
-            # else
-            #   echo "NEXT_ENV=blue" > /tmp/deploy_env
-            #   echo "CURRENT_ENV=green" >> /tmp/deploy_env
-            # fi
-            # sudo scp /tmp/deploy_env ${TATTOO_USER}@${NGINX_TATTOO_HOST}:/tmp/deploy_env
-            # sudo scp /tmp/deploy_env ${{ secrets.DOCKER_TATTOO_HOST }}:/tmp/deploy_env
-            # exit 0
-      
-      - name: Set environment variables
         run: |
-          OUTPUT="${{ steps.detect.outputs.result }}"
-          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2)
-          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2)
-          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
+          RESPONSE=$(curl -s http://34.51.83.32/ | grep -o 'Ambiente [A-Z]*')
+          CURRENT_ENV=$(echo "$RESPONSE" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')
+          if [ "$CURRENT_ENV" = "blue" ]; then
+            NEXT_ENV="green"
+          else
+            NEXT_ENV="blue"
+          fi
           echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
+          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
 
       - name: Read environment variables
         run: |
