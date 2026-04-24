@@ -134,7 +134,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            sudo ssh -o StrictHostKeyChecking=no ${{ secrets.TATTOO_USER }}@${{ secrets.NGINX_TATTOO_HOST }} \
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/ssh_key
+            chmod 600 ~/.ssh/ssh_key
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/ssh_key ${{ secrets.TATTOO_USER }}@${{ secrets.NGINX_TATTOO_HOST }} \
               "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default && echo 'Está en BLUE' || echo 'Está en GREEN'"
             # if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
             #   "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
