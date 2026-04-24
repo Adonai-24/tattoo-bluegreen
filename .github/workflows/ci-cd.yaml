@@ -7,123 +7,147 @@ on:
     branches: ['main']
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-          cache: 'npm'
-      - run: npm install
-      - run: npm test
+  # test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 22.x
+  #         cache: 'npm'
+  #     - run: npm install
+  #     - run: npm test
 
-  load-test:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - run: npm install
-      - run: |
-          node ./bin/www &
-          sleep 10
-      - name: Install k6
-        run: |
-          curl -s https://api.github.com/repos/grafana/k6/releases/latest \
-          | grep "browser_download_url.*linux-amd64" \
-          | cut -d '"' -f 4 \
-          | wget -qi -
-          tar -xzf k6-v*-linux-amd64.tar.gz
-          sudo mv k6-v*-linux-amd64/k6 /usr/local/bin/k6
-      - name: Run k6 cloud test
-        run: k6 run --out cloud k6/loadtest.js
-        env:
-          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN_TATTOO }}
-          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_PROJECT_ID_TATTOO }}
+  # load-test:
+  #   runs-on: ubuntu-latest
+  #   needs: test
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: npm install
+  #     - run: |
+  #         node ./bin/www &
+  #         sleep 10
+  #     - name: Install k6
+  #       run: |
+  #         curl -s https://api.github.com/repos/grafana/k6/releases/latest \
+  #         | grep "browser_download_url.*linux-amd64" \
+  #         | cut -d '"' -f 4 \
+  #         | wget -qi -
+  #         tar -xzf k6-v*-linux-amd64.tar.gz
+  #         sudo mv k6-v*-linux-amd64/k6 /usr/local/bin/k6
+  #     - name: Run k6 cloud test
+  #       run: k6 run --out cloud k6/loadtest.js
+  #       env:
+  #         K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN_TATTOO }}
+  #         K6_CLOUD_PROJECT_ID: ${{ secrets.K6_PROJECT_ID_TATTOO }}
 
-  sonarqube-analysis:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  # sonarqube-analysis:
+  #   runs-on: ubuntu-latest
+  #   needs: test
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-          cache: 'npm'
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 22.x
+  #         cache: 'npm'
 
-      - name: Install dependencies and run tests with coverage
-        run: |
-          npm install
-          npm test
+  #     - name: Install dependencies and run tests with coverage
+  #       run: |
+  #         npm install
+  #         npm test
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_TATTOO }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_TATTOO }}
-        with:
-          args: >
-            -Dsonar.projectKey=tattoo-bluegreen
-            -Dsonar.projectName=Tattoo-BlueGreen
-            -Dsonar.sources=app
-            -Dsonar.tests=tests
-            -Dsonar.test.inclusions=tests/**/*.test.js
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.qualitygate.wait=true
+  #     - name: SonarQube Scan
+  #       uses: SonarSource/sonarqube-scan-action@master
+  #       env:
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_TATTOO }}
+  #         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_TATTOO }}
+  #       with:
+  #         args: >
+  #           -Dsonar.projectKey=tattoo-bluegreen
+  #           -Dsonar.projectName=Tattoo-BlueGreen
+  #           -Dsonar.sources=app
+  #           -Dsonar.tests=tests
+  #           -Dsonar.test.inclusions=tests/**/*.test.js
+  #           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+  #           -Dsonar.qualitygate.wait=true
 
-  build-and-push:
-    runs-on: ubuntu-latest
-    needs: [test, load-test, sonarqube-analysis]
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      image_name: ${{ steps.lowercase.outputs.image_name }}
+  # build-and-push:
+  #   runs-on: ubuntu-latest
+  #   needs: [test, load-test, sonarqube-analysis]
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   outputs:
+  #     image_name: ${{ steps.lowercase.outputs.image_name }}
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Set lowercase image name
-        id: lowercase
-        run: echo "image_name=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+  #     - name: Set lowercase image name
+  #       id: lowercase
+  #       run: echo "image_name=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Log in to GHCR
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/${{ steps.lowercase.outputs.image_name }}:main
+  #     - name: Build and push Docker image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         push: true
+  #         tags: ghcr.io/${{ steps.lowercase.outputs.image_name }}:main
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    # needs: build-and-push
     steps:
-      - name: Update repo on docker-vm
+      # - name: Update repo on docker-vm
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.DOCKER_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script: |
+      #       cd /home/tattoo-bluegreen
+      #       sudo git fetch origin main
+      #       sudo git reset --hard origin/main
+
+      - name: Detect and set current environment
+        id: detect-env
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.DOCKER_TATTOO_HOST }}
+          host: ${{ secrets.BASTION_TATTOO_HOST }}
           username: ${{ secrets.TATTOO_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
-          proxy_username: ${{ secrets.TATTOO_USER }}
-          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /home/tattoo-bluegreen
-            sudo git fetch origin main
-            sudo git reset --hard origin/main
+            ssh -i ~/.ssh/google_compute_engine ${{ secrets.TATTOO_USER }}@${{ secrets.NGINX_TATTOO_HOST }} \
+              "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default && echo 'Está en BLUE' || echo 'Está en GREEN'"
+            # if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
+            #   "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
+            #   echo "NEXT_ENV=green" > /tmp/deploy_env
+            #   echo "CURRENT_ENV=blue" >> /tmp/deploy_env
+            # else
+            #   echo "NEXT_ENV=blue" > /tmp/deploy_env
+            #   echo "CURRENT_ENV=green" >> /tmp/deploy_env
+            # fi
+            # sudo scp /tmp/deploy_env ${TATTOO_USER}@${NGINX_TATTOO_HOST}:/tmp/deploy_env
+            # sudo scp /tmp/deploy_env ${{ secrets.DOCKER_TATTOO_HOST }}:/tmp/deploy_env
+            
+            # exit 0
 
       # - name: Detect current environment
       #   id: detect-env
@@ -139,68 +163,37 @@ jobs:
       #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
       #     script: |
       #       if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
-      #         echo "green"
+      #         echo "NEXT_ENV=green" > /tmp/deploy_env
+      #         echo "CURRENT_ENV=blue" >> /tmp/deploy_env
       #       else
-      #         echo "blue"
+      #         echo "NEXT_ENV=blue" > /tmp/deploy_env
+      #         echo "CURRENT_ENV=green" >> /tmp/deploy_env
       #       fi
-      
+
+      # - name: Read environment from remote
+      #   id: read-env
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.NGINX_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script: |
+      #       cat /tmp/deploy_env
+
       # - name: Set environment variables
       #   run: |
-      #     NEXT_ENV="${{ steps.detect-env.outputs.stdout }}"
-      #     NEXT_ENV=$(echo "$NEXT_ENV" | tr -d '\n')
-      #     if [ "$NEXT_ENV" = "blue" ]; then
-      #       CURRENT_ENV="green"
-      #     else
-      #       CURRENT_ENV="blue"
-      #     fi
+      #     OUTPUT="${{ steps.read-env.outputs.stdout }}"
+      #     NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
+      #     CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
       #     echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
       #     echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
-
-      - name: Detect current environment
-        id: detect-env
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.NGINX_TATTOO_HOST }}
-          username: ${{ secrets.TATTOO_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
-          proxy_username: ${{ secrets.TATTOO_USER }}
-          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
-              echo "NEXT_ENV=green" > /tmp/deploy_env
-              echo "CURRENT_ENV=blue" >> /tmp/deploy_env
-            else
-              echo "NEXT_ENV=blue" > /tmp/deploy_env
-              echo "CURRENT_ENV=green" >> /tmp/deploy_env
-            fi
-
-      - name: Read environment from remote
-        id: read-env
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.NGINX_TATTOO_HOST }}
-          username: ${{ secrets.TATTOO_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
-          proxy_username: ${{ secrets.TATTOO_USER }}
-          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            cat /tmp/deploy_env
-
-      - name: Set environment variables
-        run: |
-          OUTPUT="${{ steps.read-env.outputs.stdout }}"
-          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
-          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
-          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
-          echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
-          echo "NEXT_ENV=${NEXT_ENV}"
-          echo "CURRENT_ENV=${CURRENT_ENV}"
+      #     echo "NEXT_ENV=${NEXT_ENV}"
+      #     echo "CURRENT_ENV=${CURRENT_ENV}"
 
       # - name: Deploy new container
       #   uses: appleboy/ssh-action@v1.0.3
@@ -232,73 +225,73 @@ jobs:
       #       echo "NEXT_ENV=${NEXT_ENV}"
       #       echo "CURRENT_ENV=${CURRENT_ENV}"
 
-      - name: Deploy new container
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DOCKER_TATTOO_HOST }}
-          username: ${{ secrets.TATTOO_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
-          proxy_username: ${{ secrets.TATTOO_USER }}
-          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            # NEXT_ENV=${{ env.NEXT_ENV }}
-            # CURRENT_ENV=${{ env.CURRENT_ENV }}
-            echo ">> Deploying NEXT=${NEXT_ENV} CURRENT=${CURRENT_ENV}"
-            # echo ">> Deploying NEXT=${{ env.NEXT_ENV }} CURRENT=${{ env.CURRENT_ENV }}"
-            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-            docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
-            cd /home/tattoo-bluegreen
-            docker-compose stop app_${NEXT_ENV} || true
-            docker-compose rm -f app_${NEXT_ENV} || true
-            DEPLOY_ENV=${NEXT_ENV} docker-compose up -d --no-deps --build app_${NEXT_ENV}
-            # docker-compose stop app_${{ env.NEXT_ENV }} || true
-            # docker-compose rm -f app_${{ env.NEXT_ENV }} || true
-            # DEPLOY_ENV=${{ env.NEXT_ENV }} docker-compose up -d --no-deps --build app_${{ env.NEXT_ENV }}
-            echo "NEXT_ENV=${NEXT_ENV}"
-            echo "CURRENT_ENV=${CURRENT_ENV}"
-            # echo "NEXT_ENV=${{ env.NEXT_ENV }}"
-            # echo "CURRENT_ENV=${{ env.CURRENT_ENV }}"
+      # - name: Deploy new container
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.DOCKER_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script: |
+      #       # NEXT_ENV=${{ env.NEXT_ENV }}
+      #       # CURRENT_ENV=${{ env.CURRENT_ENV }}
+      #       echo ">> Deploying NEXT=${NEXT_ENV} CURRENT=${CURRENT_ENV}"
+      #       # echo ">> Deploying NEXT=${{ env.NEXT_ENV }} CURRENT=${{ env.CURRENT_ENV }}"
+      #       docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+      #       docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
+      #       cd /home/tattoo-bluegreen
+      #       docker-compose stop app_${NEXT_ENV} || true
+      #       docker-compose rm -f app_${NEXT_ENV} || true
+      #       DEPLOY_ENV=${NEXT_ENV} docker-compose up -d --no-deps --build app_${NEXT_ENV}
+      #       # docker-compose stop app_${{ env.NEXT_ENV }} || true
+      #       # docker-compose rm -f app_${{ env.NEXT_ENV }} || true
+      #       # DEPLOY_ENV=${{ env.NEXT_ENV }} docker-compose up -d --no-deps --build app_${{ env.NEXT_ENV }}
+      #       echo "NEXT_ENV=${NEXT_ENV}"
+      #       echo "CURRENT_ENV=${CURRENT_ENV}"
+      #       # echo "NEXT_ENV=${{ env.NEXT_ENV }}"
+      #       # echo "CURRENT_ENV=${{ env.CURRENT_ENV }}"
 
-      - name: Switch Nginx
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.NGINX_TATTOO_HOST }}
-          username: ${{ secrets.TATTOO_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
-          proxy_username: ${{ secrets.TATTOO_USER }}
-          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            source /tmp/deploy_env
-            echo ">> Switching nginx: $CURRENT_ENV -> $NEXT_ENV"
-            sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" \
-              /etc/nginx/sites-available/default
-            sudo systemctl reload nginx
-            sleep 7
-            if ! curl -f http://34.51.83.32/health; then
-              echo "Healthcheck falló, rollback a $CURRENT_ENV..."
-              sudo sed -i "s|proxy_pass http://app_${NEXT_ENV};|proxy_pass http://app_${CURRENT_ENV};|" \
-                /etc/nginx/sites-available/default
-              sudo systemctl reload nginx
-              exit 1
-            fi
+      # - name: Switch Nginx
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.NGINX_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script: |
+      #       source /tmp/deploy_env
+      #       echo ">> Switching nginx: $CURRENT_ENV -> $NEXT_ENV"
+      #       sudo sed -i "s|proxy_pass http://app_${CURRENT_ENV};|proxy_pass http://app_${NEXT_ENV};|" \
+      #         /etc/nginx/sites-available/default
+      #       sudo systemctl reload nginx
+      #       sleep 7
+      #       if ! curl -f http://34.51.83.32/health; then
+      #         echo "Healthcheck falló, rollback a $CURRENT_ENV..."
+      #         sudo sed -i "s|proxy_pass http://app_${NEXT_ENV};|proxy_pass http://app_${CURRENT_ENV};|" \
+      #           /etc/nginx/sites-available/default
+      #         sudo systemctl reload nginx
+      #         exit 1
+      #       fi
 
-      - name: Deploy monitoring stack
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DOCKER_TATTOO_HOST }}
-          username: ${{ secrets.TATTOO_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
-          proxy_username: ${{ secrets.TATTOO_USER }}
-          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            cd /home/tattoo-bluegreen
-            docker-compose -f docker-compose.prom.yml up -d
+      # - name: Deploy monitoring stack
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.DOCKER_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script: |
+      #       cd /home/tattoo-bluegreen
+      #       docker-compose -f docker-compose.prom.yml up -d
