@@ -160,8 +160,8 @@ jobs:
 
       - name: Detect current environment
         run: |
-          RESPONSE=$(curl -s http://34.51.83.32/ | grep -o 'Ambiente [A-Z]\+')
-          CURRENT_ENV=$(echo "$RESPONSE" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')
+          RESPONSE=$(curl -s http://34.51.83.32/health | jq -r '.env')
+          CURRENT_ENV=$RESPONSE
           if [ "$CURRENT_ENV" = "blue" ]; then
             NEXT_ENV="green"
           else
