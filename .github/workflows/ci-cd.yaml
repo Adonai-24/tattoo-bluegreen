@@ -125,6 +125,37 @@ jobs:
             sudo git fetch origin main
             sudo git reset --hard origin/main
 
+      # - name: Detect current environment
+      #   id: detect-env
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.NGINX_TATTOO_HOST }}
+      #     username: ${{ secrets.TATTOO_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     proxy_host: ${{ secrets.BASTION_TATTOO_HOST }}
+      #     proxy_username: ${{ secrets.TATTOO_USER }}
+      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      #     script: |
+      #       if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
+      #         echo "green"
+      #       else
+      #         echo "blue"
+      #       fi
+      
+      # - name: Set environment variables
+      #   run: |
+      #     NEXT_ENV="${{ steps.detect-env.outputs.stdout }}"
+      #     NEXT_ENV=$(echo "$NEXT_ENV" | tr -d '\n')
+      #     if [ "$NEXT_ENV" = "blue" ]; then
+      #       CURRENT_ENV="green"
+      #     else
+      #       CURRENT_ENV="blue"
+      #     fi
+      #     echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
+      #     echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
+
       - name: Detect current environment
         id: detect-env
         uses: appleboy/ssh-action@v1.0.3
@@ -161,27 +192,15 @@ jobs:
           script: |
             cat /tmp/deploy_env
 
-      # - name: Set environment variables
-      #   run: |
-      #     OUTPUT="${{ steps.read-env.outputs.stdout }}"
-      #     NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
-      #     CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
-      #     echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
-      #     echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
-      #     echo "NEXT_ENV=$NEXT_ENV"
-      #     echo "CURRENT_ENV=$CURRENT_ENV"
-
       - name: Set environment variables
         run: |
           OUTPUT="${{ steps.read-env.outputs.stdout }}"
-          echo "RAW OUTPUT:"
-          echo "$OUTPUT"
-          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | head -n1 | sed 's/.*NEXT_ENV=//')
-          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | head -n1 | sed 's/.*CURRENT_ENV=//')
+          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
+          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
           echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
           echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
-          echo "Parsed NEXT_ENV=$NEXT_ENV"
-          echo "Parsed CURRENT_ENV=$CURRENT_ENV"
+          echo "NEXT_ENV=${NEXT_ENV}"
+          echo "CURRENT_ENV=${CURRENT_ENV}"
 
       # - name: Deploy new container
       #   uses: appleboy/ssh-action@v1.0.3
@@ -225,17 +244,23 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            NEXT_ENV=${{ env.NEXT_ENV }}
-            CURRENT_ENV=${{ env.CURRENT_ENV }}
-            echo ">> Deploying NEXT=$NEXT_ENV  CURRENT=$CURRENT_ENV"
+            # NEXT_ENV=${{ env.NEXT_ENV }}
+            # CURRENT_ENV=${{ env.CURRENT_ENV }}
+            echo ">> Deploying NEXT=${NEXT_ENV} CURRENT=${CURRENT_ENV}"
+            # echo ">> Deploying NEXT=${{ env.NEXT_ENV }} CURRENT=${{ env.CURRENT_ENV }}"
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker pull ghcr.io/${{ needs.build-and-push.outputs.image_name }}:main
             cd /home/tattoo-bluegreen
             docker-compose stop app_${NEXT_ENV} || true
             docker-compose rm -f app_${NEXT_ENV} || true
             DEPLOY_ENV=${NEXT_ENV} docker-compose up -d --no-deps --build app_${NEXT_ENV}
+            # docker-compose stop app_${{ env.NEXT_ENV }} || true
+            # docker-compose rm -f app_${{ env.NEXT_ENV }} || true
+            # DEPLOY_ENV=${{ env.NEXT_ENV }} docker-compose up -d --no-deps --build app_${{ env.NEXT_ENV }}
             echo "NEXT_ENV=${NEXT_ENV}"
             echo "CURRENT_ENV=${CURRENT_ENV}"
+            # echo "NEXT_ENV=${{ env.NEXT_ENV }}"
+            # echo "CURRENT_ENV=${{ env.CURRENT_ENV }}"
 
       - name: Switch Nginx
         uses: appleboy/ssh-action@v1.0.3
