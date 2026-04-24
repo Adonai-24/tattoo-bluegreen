@@ -126,7 +126,7 @@ jobs:
       #       sudo git reset --hard origin/main
 
       - name: Detect current environment
-        id: detect-env
+        id: detect
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.NGINX_TATTOO_HOST }}
@@ -137,13 +137,14 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script_stop: true
           script: |
             if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
-              echo "NEXT_ENV=green" >> $GITHUB_OUTPUT
-              echo "CURRENT_ENV=blue" >> $GITHUB_OUTPUT
+              echo "NEXT_ENV=green"
+              echo "CURRENT_ENV=blue"
             else
-              echo "NEXT_ENV=blue" >> $GITHUB_OUTPUT
-              echo "CURRENT_ENV=green" >> $GITHUB_OUTPUT
+              echo "NEXT_ENV=blue"
+              echo "CURRENT_ENV=green"
             fi
             # if ssh -o StrictHostKeyChecking=no ${{ secrets.NGINX_TATTOO_HOST }} \
             #   "grep -q 'proxy_pass http://app_blue;' /etc/nginx/sites-available/default"; then
@@ -157,10 +158,18 @@ jobs:
             # sudo scp /tmp/deploy_env ${{ secrets.DOCKER_TATTOO_HOST }}:/tmp/deploy_env
             # exit 0
       
+      - name: Set environment variables
+        run: |
+          OUTPUT="${{ steps.detect.outputs.result }}"
+          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2)
+          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2)
+          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
+          echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
+
       - name: Read environment variables
         run: |
-          echo "NEXT_ENV=${{ steps.detect-env.outputs.NEXT_ENV }}"
-          echo "CURRENT_ENV=${{ steps.detect-env.outputs.CURRENT_ENV }}"
+          echo "NEXT_ENV=${NEXT_ENV}"
+          echo "CURRENT_ENV=${CURRENT_ENV}"
 
       # - name: Detect current environment
       #   id: detect-env
