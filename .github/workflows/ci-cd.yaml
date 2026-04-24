@@ -137,6 +137,7 @@ jobs:
           proxy_username: ${{ secrets.TATTOO_USER }}
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           proxy_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          envs: NEXT_ENV,CURRENT_ENV
           script: |
             if grep -q "proxy_pass http://app_blue;" /etc/nginx/sites-available/default; then
               echo "NEXT_ENV=green"
@@ -156,14 +157,6 @@ jobs:
             # sudo scp /tmp/deploy_env ${TATTOO_USER}@${NGINX_TATTOO_HOST}:/tmp/deploy_env
             # sudo scp /tmp/deploy_env ${{ secrets.DOCKER_TATTOO_HOST }}:/tmp/deploy_env
             # exit 0
-      
-      - name: Set environment variables
-        run: |
-          OUTPUT="${{ steps.detect-env.outputs.stdout }}"
-          NEXT_ENV=$(echo "$OUTPUT" | grep NEXT_ENV | cut -d '=' -f2 | tr -d '\r')
-          CURRENT_ENV=$(echo "$OUTPUT" | grep CURRENT_ENV | cut -d '=' -f2 | tr -d '\r')
-          echo "NEXT_ENV=$NEXT_ENV" >> $GITHUB_ENV
-          echo "CURRENT_ENV=$CURRENT_ENV" >> $GITHUB_ENV
       
       - name: Read environment variables
         run: |
